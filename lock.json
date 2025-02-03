@@ -1,0 +1,19 @@
+{
+    "@xterm/addon-fit": {
+        "Version": "0.10.0",
+        "Dependencies": {
+            "@xterm/xterm": {
+                "Version": "5.5.0",
+                "Dependencies": {}
+            }
+        }
+    },
+    "@xterm/xterm": {
+        "Version": "5.5.0",
+        "Dependencies": {}
+    },
+    "eruda": {
+        "Version": "3.4.1",
+        "Dependencies": {}
+    }
+}
