@@ -8,7 +8,10 @@ const terminal = new Terminal();
 const fitAddon = new FitAddon();
 terminal.loadAddon(fitAddon);
 
-window.addEventListener("resize", () => fitAddon.fit());
+window.addEventListener("resize", () => {
+    document.body.style.height = window.visualViewport.height + "px";
+    fitAddon.fit();
+});
 
 const terminalContainer = document.createElement("div");
 terminalContainer.id = "terminal-container";
@@ -46,4 +49,15 @@ keyboardExtension.append(leftButton, rightButton);
 
 document.body.append(keyboardExtension);
 
+let lastHeight = window.visualViewport.height;
+const checkHeight = () => {
+    const currentHeight = window.visualViewport.height;
 
+    if(currentHeight !== lastHeight) {
+        window.dispatchEvent(new Event("resize"))
+    }
+    
+    lastHeight = currentHeight;
+    
+    window.requestAnimationFrame(checkHeight);
+}
