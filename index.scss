@@ -3,10 +3,21 @@ body {
     margin: 0;
     height: 100%;
     width: 100%;
+}
+
+
+#terminal-container {
+    height: 100%;
     > div {
         height: 100%;
-        > div {
-            height: 100%;
-        }
     }
+}
+
+#keyboard-extension {
+    position: fixed;
+    width: 100%;
+    padding: 5px;
+    background-color: lightgray;
+    left: 0;
+    bottom: 0;
 }

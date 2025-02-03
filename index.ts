@@ -10,12 +10,40 @@ terminal.loadAddon(fitAddon);
 
 window.addEventListener("resize", () => fitAddon.fit());
 
-const root = document.createElement("div");
-document.body.append(root);
-terminal.open(root);
+const terminalContainer = document.createElement("div");
+terminalContainer.id = "terminal-container";
+document.body.append(terminalContainer);
+terminal.open(terminalContainer);
 
 terminal.focus();
 
+const te = new TextEncoder();
+
 terminal.onKey(({ key }) => {
+    console.log(te.encode(key));
     terminal.write(key);
 });
+
+const keyboardExtension = document.createElement("div");
+keyboardExtension.id = "keyboard-extension";
+
+const left = new Uint8Array([27, 91, 68]);
+const leftButton = document.createElement("button");
+leftButton.innerText = "<";
+leftButton.onclick = () => {
+    terminal.write(left);
+    terminal.focus();
+};
+
+const right = new Uint8Array([27, 91, 67]);
+const rightButton = document.createElement("button");
+rightButton.innerText = ">";
+rightButton.onclick = () => {
+    terminal.write(right);
+    terminal.focus();
+};
+keyboardExtension.append(leftButton, rightButton);
+
+document.body.append(keyboardExtension);
+
+
