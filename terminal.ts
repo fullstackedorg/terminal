@@ -7,7 +7,7 @@ import LocalEchoController from "./local-echo";
 export function createTerminal(domElement: HTMLElement) {
     const terminal = createXtermTerminal(domElement);
 
-    setupKeyboardExtension(terminal, (button) => {
+    setupKeyboardExtension(domElement, terminal, (button) => {
         terminal.textarea.dispatchEvent(new KeyboardEvent("keydown", button));
         terminal.focus();
     });
@@ -58,23 +58,30 @@ type ButtonClickParam = {
 };
 
 function setupKeyboardExtension(
+    container: HTMLElement,
     terminal: Terminal,
     onButtonClick: (p: ButtonClickParam) => void,
 ) {
     const keyboardExtension = document.createElement("div");
     keyboardExtension.classList.add("keyboard-extension");
 
-    keyboardExtensionOverlayHeightListener(terminal, keyboardExtension);
-    keyboardExtensionShowHideOnTerminalFocus(terminal, keyboardExtension);
+    const toolbar = document.createElement("div");
 
-    const inner = document.createElement("div");
+    keyboardExtensionOverlayHeightListener(terminal, keyboardExtension);
+    keyboardExtensionShowHideOnTerminalFocus(
+        container, 
+        terminal, 
+        keyboardExtension,
+        toolbar
+    );
+
 
     const tabButton = createButton("tab", "Tab", 9, onButtonClick);
     const leftButton = createButton("<", "ArrowLeft", 37, onButtonClick);
     const rightButton = createButton(">", "ArrowRight", 39, onButtonClick);
 
-    inner.append(tabButton, leftButton, rightButton);
-    keyboardExtension.append(inner);
+    toolbar.append(tabButton, leftButton, rightButton);
+    keyboardExtension.append(toolbar);
 
     document.body.append(keyboardExtension);
 }
@@ -118,8 +125,10 @@ function keyboardExtensionOverlayHeightListener(
 }
 
 function keyboardExtensionShowHideOnTerminalFocus(
+    container: HTMLElement,
     terminal: Terminal,
     keyboardExtElement: HTMLElement,
+    toolbar: HTMLElement
 ) {
     let hideThrottler: ReturnType<typeof setTimeout>;
     const hideKeyboardExt = () => {
@@ -127,6 +136,8 @@ function keyboardExtensionShowHideOnTerminalFocus(
             clearTimeout(hideThrottler);
         }
         hideThrottler = setTimeout(() => {
+            container.style.transition = null;
+            container.style.marginBottom = null;
             keyboardExtElement.classList.remove("show");
             hideThrottler = null;
         }, 100);
@@ -142,6 +153,8 @@ function keyboardExtensionShowHideOnTerminalFocus(
                     clearTimeout(hideThrottler);
                 }
                 keyboardExtElement.classList.add("show");
+                container.style.transition = `0.3s margin-bottom`;
+                container.style.marginBottom = toolbar.getBoundingClientRect().height + "px";
             } else {
                 hideKeyboardExt();
             }
