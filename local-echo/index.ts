@@ -602,7 +602,9 @@ export default class LocalEchoController {
                             }
                         } else if (candidates.length === 1) {
                             // Just a single candidate? Complete
-                            const lastToken = getLastToken(inputFragment);
+                            const lastToken = getLastToken(
+                                inputFragment,
+                            ) as string;
                             this.handleCursorInsert(
                                 candidates[0].slice(lastToken.length) + " ",
                             );

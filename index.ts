@@ -11,35 +11,156 @@ sn.navigate(view, {
     bgColor: "coral",
 });
 
-const commands: {
-    [cmd: string]: (it: Parameters<CommandHandler>[1]) => Promise<void> | void;
-} = {
-    hello: (it) => {
-        it.println("world");
+type CommandExec = (
+    args: string[],
+    it: Parameters<CommandHandler>[1],
+) => Promise<void> | void;
+
+type Command = {
+    name: string;
+    exec: CommandExec;
+    alias?: string[];
+    subcommands?: Command[];
+};
+
+const commands: Command[] = [
+    {
+        name: "hello",
+        alias: ["h"],
+        exec: (_, it) => {
+            it.println("world");
+        },
+        subcommands: [
+            {
+                name: "world",
+                alias: ["w"],
+                exec: (args, it) => {
+                    if (args.length === 0) {
+                        it.println("please tell me your name");
+                    } else {
+                        it.println("hello to you " + args.join(" "));
+                    }
+                },
+            },
+        ],
     },
-    progress: async (it) => {
-        const max = 100;
-        const blockCount = 10;
-        for (let i = 0; i < max; i++) {
-            const blocks = Math.ceil((i / max) * blockCount);
-            let progressBar = "";
-            for (let j = 0; j <= blockCount; j++) {
-                progressBar += j < blocks ? "=" : " ";
+    {
+        name: "progress",
+        alias: ["p"],
+        exec: async (args, it) => {
+            const bar = args.includes("-b") || args.includes("--bar");
+
+            const max = 100;
+            const blockCount = 10;
+            for (let i = 0; i <= max; i++) {
+                let line = "";
+
+                if (bar) {
+                    const blocks = Math.floor((i / max) * blockCount);
+                    let progressBar = "";
+                    for (let j = 0; j < blockCount; j++) {
+                        progressBar += j < blocks ? "=" : " ";
+                    }
+
+                    line += `[${progressBar}] `;
+                }
+
+                line += `${i}%`;
+
+                it.clear();
+                it.print(line);
+                await new Promise((res) => setTimeout(res, 50));
             }
-
-            it.clear();
-            it.print(`[${progressBar}] ` + i + "%");
-            await new Promise((res) => setTimeout(res, 50));
-        }
-        it.clear();
-        it.println(`[===========] 100%`);
+            it.println(" Done");
+        },
     },
+    {
+        name: "npm",
+        exec: (_, it) => {it.println("npm")},
+        subcommands: [{
+            name: "install",
+            alias: ["i"],
+            exec: (args, it) => { 
+                if(args.length === 0) {
+                    it.println("no package to install")
+                    return;
+                }
+                it.println(`installing ${args.join(", ")}`)
+            }
+        }]
+    }
+];
+
+const commandHandler: CommandHandler = async (cmdStr, it) => {
+    const args = cmdStr
+        .trim()
+        .split(" ")
+        .filter((a) => a !== "");
+    if (args.length === 0) {
+        return;
+    }
+
+    const commandName = args.at(0);
+    const command = commands.find(
+        ({ name, alias }) =>
+            name === commandName || alias?.find((a) => a === commandName),
+    );
+
+    if (!command) {
+        it.println(`command not found: ${commandName}`);
+        return;
+    }
+
+    const { cmd, depth } = recurseInCommand(command, args.slice(1), 1);
+
+    return cmd.exec(args.slice(depth + 1), it);
 };
 
-const commandHandler: CommandHandler = async (cmd, it) => {
-    return commands[cmd.trim()]?.(it);
+function recurseInCommand(cmd: Command, args: string[], depth = 0) {
+    if (args.length === 0) {
+        return {
+            cmd,
+            depth,
+        };
+    }
+
+    const arg = args.shift();
+    const subcommand = cmd.subcommands?.find(
+        ({ name, alias }) => name === arg || alias?.find((a) => a === arg),
+    );
+
+    if(!subcommand) {
+        return {
+            cmd,
+            depth: depth - 1
+        }
+    }
+
+    return recurseInCommand(subcommand, args, depth + 1);
+}
+
+function recurseInSubCommands(cmds: Command[], args: string[]) {
+    if (args.length === 0) {
+        return cmds;
+    }
+
+    const token = args.shift();
+
+    const cmd = cmds.find(
+        ({ name, alias }) => name === token || alias?.find((a) => a === token),
+    );
+    if (!cmd?.subcommands) {
+        return [];
+    }
+
+    return recurseInSubCommands(cmd.subcommands, args);
+}
+
+const autompleteHandler: AutocompleteHandler = (index, tokens) => {
+    tokens = new Array(index + 1).fill(null).map((_, i) => tokens[i] || "");
+    const cmds = recurseInSubCommands(commands, tokens.slice(0, -1));
+    return cmds.map(({ name }) => name);
 };
-const autompleteHandler: AutocompleteHandler = () => Object.keys(commands);
 
 const terminalContainer = document.createElement("div");
 terminalContainer.classList.add("terminal-container");
