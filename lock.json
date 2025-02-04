@@ -1,6 +1,6 @@
 {
     "@fullstacked/stack-navigation": {
-        "Version": "0.0.2",
+        "Version": "0.0.3",
         "Dependencies": {}
     },
     "@xterm/addon-fit": {
@@ -19,20 +19,6 @@
     "eruda": {
         "Version": "3.4.1",
         "Dependencies": {}
-    },
-    "local-echo": {
-        "Version": "0.2.0",
-        "Dependencies": {
-            "shell-quote": {
-                "Version": "1.8.2",
-                "Dependencies": {
-                    "@types/shell-quote": {
-                        "Version": "1.7.5",
-                        "Dependencies": {}
-                    }
-                }
-            }
-        }
     },
     "shell-quote": {
         "Version": "1.8.2",
