@@ -15,5 +15,28 @@
     "eruda": {
         "Version": "3.4.1",
         "Dependencies": {}
+    },
+    "local-echo": {
+        "Version": "0.2.0",
+        "Dependencies": {
+            "shell-quote": {
+                "Version": "1.8.2",
+                "Dependencies": {
+                    "@types/shell-quote": {
+                        "Version": "1.7.5",
+                        "Dependencies": {}
+                    }
+                }
+            }
+        }
+    },
+    "shell-quote": {
+        "Version": "1.8.2",
+        "Dependencies": {
+            "@types/shell-quote": {
+                "Version": "1.7.5",
+                "Dependencies": {}
+            }
+        }
     }
 }

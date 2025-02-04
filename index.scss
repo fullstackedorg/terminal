@@ -21,4 +21,10 @@ body {
     background-color: lightgray;
     left: 0;
     bottom: 0;
+    display: flex;
+    gap: 10px;
+}
+
+button {
+    padding: 10px 20px;
 }

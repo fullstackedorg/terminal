@@ -1,6 +1,7 @@
 import "@xterm/xterm/css/xterm.css";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
+import LocalEchoController from "./local-echo";
 import eruda from "eruda";
 eruda.init();
 
@@ -20,30 +21,35 @@ terminal.open(terminalContainer);
 
 terminal.focus();
 
-const te = new TextEncoder();
-
-terminal.onKey(({ key }) => {
-    console.log(te.encode(key));
-    terminal.write(key);
-});
-
 const keyboardExtension = document.createElement("div");
 keyboardExtension.id = "keyboard-extension";
 
-const left = new Uint8Array([27, 91, 68]);
 const leftButton = document.createElement("button");
 leftButton.innerText = "<";
 leftButton.onclick = () => {
-    terminal.write(left);
     terminal.focus();
+    terminal.textarea.dispatchEvent(
+        new KeyboardEvent("keydown", {
+            key: "ArrowLeft",
+            keyCode: 37,
+            code: "ArrowLeft", 
+            which: 37
+        }),
+    );
 };
 
-const right = new Uint8Array([27, 91, 67]);
 const rightButton = document.createElement("button");
 rightButton.innerText = ">";
 rightButton.onclick = () => {
-    terminal.write(right);
     terminal.focus();
+    terminal.textarea.dispatchEvent(
+        new KeyboardEvent("keydown", {
+            key: "ArrowRight",
+            keyCode: 39,
+            code: "ArrowRight", 
+            which: 39
+        }),
+    );
 };
 keyboardExtension.append(leftButton, rightButton);
 
@@ -53,11 +59,25 @@ let lastHeight = window.visualViewport.height;
 const checkHeight = () => {
     const currentHeight = window.visualViewport.height;
 
-    if(currentHeight !== lastHeight) {
-        window.dispatchEvent(new Event("resize"))
+    if (currentHeight !== lastHeight) {
+        window.dispatchEvent(new Event("resize"));
     }
-    
+
     lastHeight = currentHeight;
-    
+
     window.requestAnimationFrame(checkHeight);
+};
+
+const localEcho = new LocalEchoController(terminal);
+
+function loop() {
+    localEcho
+        .read("~$ ")
+        .then((cmd) => {
+            console.log(cmd);
+            loop();
+        })
+        .catch(console.log);
 }
+
+loop();
