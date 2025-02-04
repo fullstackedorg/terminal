@@ -21,9 +21,7 @@ function createXtermTerminal(domElement: HTMLElement) {
     terminal.loadAddon(fitAddon);
     terminal.open(domElement);
 
-    window.addEventListener("resize", () => {
-        setTimeout(() => fitAddon.fit(), 100);
-    });
+    terminal.element.addEventListener("resize", () => fitAddon.fit());
     fitAddon.fit();
 
     return terminal;
@@ -66,7 +64,7 @@ function setupKeyboardExtension(
     const keyboardExtension = document.createElement("div");
     keyboardExtension.classList.add("keyboard-extension");
 
-    keyboardExtensionOverlayHeightListener(keyboardExtension);
+    keyboardExtensionOverlayHeightListener(terminal, keyboardExtension);
     keyboardExtensionShowHideOnTerminalFocus(terminal, keyboardExtension);
 
     const inner = document.createElement("div");
@@ -100,6 +98,7 @@ function createButton(
 }
 
 function keyboardExtensionOverlayHeightListener(
+    terminal: Terminal,
     keyboardExtElement: HTMLElement,
 ) {
     let lastHeight = 0;
@@ -107,6 +106,7 @@ function keyboardExtensionOverlayHeightListener(
         const currentHeight = window.visualViewport.height;
 
         if (currentHeight !== lastHeight) {
+            terminal.element.dispatchEvent(new Event("resize"));
             keyboardExtElement.style.height = currentHeight + "px";
         }
 

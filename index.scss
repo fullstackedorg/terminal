@@ -6,7 +6,8 @@ main {
 
     .terminal-container {
         height: 50%;
-        min-height: 400px;
+        min-height: 150px;
+        max-height: 400px;
     }
 }
 
