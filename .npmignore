@@ -1,0 +1,6 @@
+commands.ts
+index.js
+index.scss
+lock.json
+*.tgz
+.build
