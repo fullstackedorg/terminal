@@ -1,5 +1,6 @@
 import StackNav from "@fullstacked/stack-navigation";
 import { CommandHandler, createTerminal } from "./terminal";
+import { color } from 'console-log-colors';
 import eruda from "eruda";
 import { AutocompleteHandler } from "./local-echo";
 eruda.init();
@@ -24,6 +25,13 @@ type Command = {
 };
 
 const commands: Command[] = [
+    {
+        name: "error",
+        alias: ["e"],
+        exec: (args, it) => {
+            it.println(color.red(args.join(" ")))
+        }
+    },
     {
         name: "hello",
         alias: ["h"],
@@ -71,7 +79,7 @@ const commands: Command[] = [
                 it.print(line);
                 await new Promise((res) => setTimeout(res, 50));
             }
-            it.println(" Done");
+            it.println(color.green(" Done"));
         },
     },
     {
