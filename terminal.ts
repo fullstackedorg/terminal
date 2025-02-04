@@ -15,8 +15,10 @@ export type CommandHandler = (
 
 export function createTerminal(
     domElement: HTMLElement,
-    onCommand: CommandHandler,
-    autocompletionHandler: AutocompleteHandler
+    handlers: {
+        command: CommandHandler,
+        autocomplete: AutocompleteHandler
+    }
 ) {
     const terminal = createXtermTerminal(domElement);
 
@@ -25,11 +27,7 @@ export function createTerminal(
         terminal.focus();
     });
 
-    return setupLocalEcho(
-        terminal, 
-        onCommand,
-        autocompletionHandler
-    );
+    setupLocalEcho(terminal, handlers);
 }
 
 function createXtermTerminal(domElement: HTMLElement) {
@@ -40,8 +38,8 @@ function createXtermTerminal(domElement: HTMLElement) {
 
     // allow ios device to grab and paste
     terminal.onRender(() => {
-        terminal.textarea.style.width = "40px"
-        terminal.textarea.style.height = "40px"
+        terminal.textarea.style.width = "40px";
+        terminal.textarea.style.height = "40px";
     });
 
     terminal.element.addEventListener("resize", () => fitAddon.fit());
@@ -51,24 +49,26 @@ function createXtermTerminal(domElement: HTMLElement) {
 }
 
 function setupLocalEcho(
-    terminal: Terminal, 
-    onCommand: CommandHandler,
-    autocompletionHandler: AutocompleteHandler,
+    terminal: Terminal,
+    handlers: {
+        command: CommandHandler,
+        autocomplete: AutocompleteHandler
+    }
 ) {
     const localEcho = new LocalEchoController(terminal);
 
-    localEcho.addAutocompleteHandler(autocompletionHandler)
+    localEcho.addAutocompleteHandler(handlers.autocomplete);
 
     const interact: Parameters<CommandHandler>[1] = {
         print: (str) => localEcho.print(str),
         println: (str) => localEcho.println(str),
-        clear: () => localEcho.clearInput()
-    }
-    
+        clear: () => localEcho.clearInput(),
+    };
+
     const loop = async () => {
         try {
             const cmd = await localEcho.read("~$ ");
-            const maybePromise = onCommand(cmd, interact);
+            const maybePromise = handlers.command(cmd, interact);
             if (maybePromise instanceof Promise) await maybePromise;
         } catch (e) {
             console.log(e);
@@ -77,9 +77,7 @@ function setupLocalEcho(
         loop();
     };
 
-    return {
-        start: loop,
-    };
+    loop();
 }
 
 type ButtonClickParam = {
