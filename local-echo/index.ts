@@ -1,5 +1,5 @@
 // source: https://github.com/wavesoft/local-echo
-
+import { IDisposable, Terminal } from "@xterm/xterm";
 import HistoryController from "./HistoryController";
 import {
     closestLeftBoundary,
@@ -24,27 +24,50 @@ import {
  * - Multi-line input for incomplete commands
  * - Auto-complete hooks
  */
-export default class LocalEchoController {
-    constructor(term = null, options = {}) {
-        this.term = term;
-        this._handleTermData = this.handleTermData.bind(this);
-        this._handleTermResize = this.handleTermResize.bind(this);
+type LocalEchoControllerOpts = {
+    historySize: number;
+    maxAutocompleteEntries: number;
+};
 
+export type AutocompleteHandler = (
+    index: number,
+    tokens: string[],
+) => string | string[];
+
+export default class LocalEchoController {
+    private _handleTermData = this.handleTermData.bind(this);
+    private _handleTermResize = this.handleTermResize.bind(this);
+    private _autocompleteHandlers: {
+        fn: AutocompleteHandler;
+        args: any[];
+    }[] = [];
+    private _active = false;
+    private _input = "";
+    private _cursor = 0;
+    private _activePrompt: {
+        prompt: string;
+        continuationPrompt: string;
+        resolve: (input: string) => void;
+        reject: (reason: string) => void;
+    } = null;
+    private _activeCharPrompt = null;
+    private _termSize = {
+        cols: 0,
+        rows: 0,
+    };
+    private _disposables: IDisposable[] = [];
+
+    term: Terminal;
+    history: HistoryController;
+    maxAutocompleteEntries: number;
+
+    constructor(
+        term: Terminal = null,
+        options: Partial<LocalEchoControllerOpts> = {},
+    ) {
+        this.term = term;
         this.history = new HistoryController(options.historySize || 10);
         this.maxAutocompleteEntries = options.maxAutocompleteEntries || 100;
-
-        this._autocompleteHandlers = [];
-        this._active = false;
-        this._input = "";
-        this._cursor = 0;
-        this._activePrompt = null;
-        this._activeCharPrompt = null;
-        this._termSize = {
-            cols: 0,
-            rows: 0,
-        };
-
-        this._disposables = [];
 
         if (term) {
             if (term.loadAddon) term.loadAddon(this);
@@ -53,7 +76,7 @@ export default class LocalEchoController {
     }
 
     // xterm.js new plugin API:
-    activate(term) {
+    activate(term: Terminal) {
         this.term = term;
         this.attach();
     }
@@ -88,7 +111,7 @@ export default class LocalEchoController {
     /**
      * Register a handler that will be called to satisfy auto-completion
      */
-    addAutocompleteHandler(fn, ...args) {
+    addAutocompleteHandler(fn: AutocompleteHandler, ...args: any[]) {
         this._autocompleteHandlers.push({
             fn,
             args,
@@ -98,7 +121,7 @@ export default class LocalEchoController {
     /**
      * Remove a previously registered auto-complete handler
      */
-    removeAutocompleteHandler(fn) {
+    removeAutocompleteHandler(fn: AutocompleteHandler) {
         const idx = this._autocompleteHandlers.findIndex((e) => e.fn === fn);
         if (idx === -1) return;
 
@@ -109,7 +132,7 @@ export default class LocalEchoController {
      * Return a promise that will resolve when the user has completed
      * typing a single line
      */
-    read(prompt, continuationPrompt = "> ") {
+    read(prompt: string, continuationPrompt = "> ") {
         return new Promise((resolve, reject) => {
             this.term.write(prompt);
             this._activePrompt = {
@@ -132,7 +155,7 @@ export default class LocalEchoController {
      * This can be active in addition to `.read()` and will be resolved in
      * priority before it.
      */
-    readChar(prompt) {
+    readChar(prompt: string) {
         return new Promise((resolve, reject) => {
             this.term.write(prompt);
             this._activeCharPrompt = {
@@ -164,14 +187,14 @@ export default class LocalEchoController {
     /**
      * Prints a message and changes line
      */
-    println(message) {
+    println(message: string) {
         this.print(message + "\n");
     }
 
     /**
      * Prints a message and properly handles new-lines
      */
-    print(message) {
+    print(message: string) {
         const normInput = message.replace(/[\r\n]+/g, "\n");
         this.term.write(normInput.replace(/\n/g, "\r\n"));
     }
@@ -179,8 +202,8 @@ export default class LocalEchoController {
     /**
      * Prints a list of items using a wide-format
      */
-    printWide(items, padding = 2) {
-        if (items.length == 0) return println("");
+    printWide(items: string[], padding = 2) {
+        if (items.length == 0) return this.println("");
 
         // Compute item sizes and matrix row/cols
         const itemWidth =
@@ -213,7 +236,7 @@ export default class LocalEchoController {
     /**
      * Apply prompts to the given input
      */
-    applyPrompts(input) {
+    applyPrompts(input: string) {
         const prompt = (this._activePrompt || {}).prompt || "";
         const continuationPrompt =
             (this._activePrompt || {}).continuationPrompt || "";
@@ -225,7 +248,7 @@ export default class LocalEchoController {
      * Advances the `offset` as required in order to accompany the prompt
      * additions to the input.
      */
-    applyPromptOffset(input, offset) {
+    applyPromptOffset(input: string, offset: number) {
         const newInput = this.applyPrompts(input.substr(0, offset));
         return newInput.length;
     }
@@ -244,7 +267,7 @@ export default class LocalEchoController {
 
         // Get the line we are currently in
         const promptCursor = this.applyPromptOffset(this._input, this._cursor);
-        const { col, row } = offsetToColRow(
+        const { row } = offsetToColRow(
             currentPrompt,
             promptCursor,
             this._termSize.cols,
@@ -265,7 +288,7 @@ export default class LocalEchoController {
      * This function clears all the lines that the current input occupies and
      * then replaces them with the new input.
      */
-    setInput(newInput, clearInput = true) {
+    setInput(newInput: string, clearInput = true) {
         // Clear current input
         if (clearInput) this.clearInput();
 
@@ -300,7 +323,7 @@ export default class LocalEchoController {
      * This function completes the current input, calls the given callback
      * and then re-displays the prompt.
      */
-    printAndRestartPrompt(callback) {
+    printAndRestartPrompt(callback: () => Promise<void> | void) {
         const cursor = this._cursor;
 
         // Complete input
@@ -316,10 +339,10 @@ export default class LocalEchoController {
         // Call the given callback to echo something, and if there is a promise
         // returned, wait for the resolution before resuming prompt.
         const ret = callback();
-        if (ret == null) {
-            resume();
-        } else {
+        if (ret instanceof Promise) {
             ret.then(resume);
+        } else {
+            resume();
         }
     }
 
@@ -329,13 +352,12 @@ export default class LocalEchoController {
      * This function:
      * - Calculates the previous and current
      */
-    setCursor(newCursor) {
+    setCursor(newCursor: number) {
         if (newCursor < 0) newCursor = 0;
         if (newCursor > this._input.length) newCursor = this._input.length;
 
         // Apply prompt formatting to get the visual status of the display
         const inputWithPrompt = this.applyPrompts(this._input);
-        const inputLines = countLines(inputWithPrompt, this._termSize.cols);
 
         // Estimate previous cursor position
         const prevPromptOffset = this.applyPromptOffset(
@@ -377,7 +399,7 @@ export default class LocalEchoController {
     /**
      * Move cursor at given direction
      */
-    handleCursorMove(dir) {
+    handleCursorMove(dir: number) {
         if (dir > 0) {
             const num = Math.min(dir, this._input.length - this._cursor);
             this.setCursor(this._cursor + num);
@@ -390,7 +412,7 @@ export default class LocalEchoController {
     /**
      * Erase a character at cursor location
      */
-    handleCursorErase(backspace) {
+    handleCursorErase(backspace: boolean) {
         const { _cursor, _input } = this;
         if (backspace) {
             if (_cursor <= 0) return;
@@ -409,7 +431,7 @@ export default class LocalEchoController {
     /**
      * Insert character at cursor location
      */
-    handleCursorInsert(data) {
+    handleCursorInsert(data: string) {
         const { _cursor, _input } = this;
         const newInput =
             _input.substr(0, _cursor) + data + _input.substr(_cursor);
@@ -439,7 +461,7 @@ export default class LocalEchoController {
      * updates the cached terminal size information and then re-renders the
      * input. This leads (most of the times) into a better formatted input.
      */
-    handleTermResize(data) {
+    handleTermResize(data: { rows: number; cols: number }) {
         const { rows, cols } = data;
         this.clearInput();
         this._termSize = { cols, rows };
@@ -449,8 +471,7 @@ export default class LocalEchoController {
     /**
      * Handle terminal input
      */
-    handleTermData(data) {
-        console.log("ici")
+    handleTermData(data: string) {
         if (!this._active) return;
 
         // If we have an active character prompt, satisfy it in priority
@@ -473,14 +494,14 @@ export default class LocalEchoController {
     /**
      * Handle a single piece of information from the terminal.
      */
-    handleData(data) {
+    handleData(data: string) {
         if (!this._active) return;
         const ord = data.charCodeAt(0);
-        let ofs;
+        let ofs: number;
 
         // Handle ANSI escape sequences
         if (ord == 0x1b) {
-            switch (data.substr(1)) {
+            switch (data.slice(1)) {
                 case "[A": // Up arrow
                     if (this.history) {
                         let value = this.history.getPrevious();
@@ -559,7 +580,7 @@ export default class LocalEchoController {
 
                 case "\t": // TAB
                     if (this._autocompleteHandlers.length > 0) {
-                        const inputFragment = this._input.substr(
+                        const inputFragment = this._input.slice(
                             0,
                             this._cursor,
                         );

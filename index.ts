@@ -67,9 +67,10 @@ const checkHeight = () => {
 
     window.requestAnimationFrame(checkHeight);
 };
-checkHeight();
 
 const localEcho = new LocalEchoController(terminal);
+
+localEcho.addAutocompleteHandler(() => ["autocomplete", "all"])
 
 function loop() {
     localEcho
