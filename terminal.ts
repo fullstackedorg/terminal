@@ -38,6 +38,12 @@ function createXtermTerminal(domElement: HTMLElement) {
     terminal.loadAddon(fitAddon);
     terminal.open(domElement);
 
+    // allow ios device to grab and paste
+    terminal.onRender(() => {
+        terminal.textarea.style.width = "40px"
+        terminal.textarea.style.height = "40px"
+    });
+
     terminal.element.addEventListener("resize", () => fitAddon.fit());
     fitAddon.fit();
 
