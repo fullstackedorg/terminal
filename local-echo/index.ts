@@ -133,7 +133,7 @@ export default class LocalEchoController {
      * typing a single line
      */
     read(prompt: string, continuationPrompt = "> ") {
-        return new Promise((resolve, reject) => {
+        return new Promise<string>((resolve, reject) => {
             this.term.write(prompt);
             this._activePrompt = {
                 prompt,
@@ -249,7 +249,7 @@ export default class LocalEchoController {
      * additions to the input.
      */
     applyPromptOffset(input: string, offset: number) {
-        const newInput = this.applyPrompts(input.substr(0, offset));
+        const newInput = this.applyPrompts(input.slice(0, offset));
         return newInput.length;
     }
 
@@ -417,13 +417,13 @@ export default class LocalEchoController {
         if (backspace) {
             if (_cursor <= 0) return;
             const newInput =
-                _input.substr(0, _cursor - 1) + _input.substr(_cursor);
+                _input.slice(0, _cursor - 1) + _input.slice(_cursor);
             this.clearInput();
             this._cursor -= 1;
             this.setInput(newInput, false);
         } else {
             const newInput =
-                _input.substr(0, _cursor) + _input.substr(_cursor + 1);
+                _input.slice(0, _cursor) + _input.slice(_cursor + 1);
             this.setInput(newInput);
         }
     }
@@ -434,7 +434,7 @@ export default class LocalEchoController {
     handleCursorInsert(data: string) {
         const { _cursor, _input } = this;
         const newInput =
-            _input.substr(0, _cursor) + data + _input.substr(_cursor);
+            _input.slice(0, _cursor) + data + _input.slice(_cursor);
         this._cursor += data.length;
         this.setInput(newInput);
     }
@@ -555,8 +555,8 @@ export default class LocalEchoController {
                     ofs = closestLeftBoundary(this._input, this._cursor);
                     if (ofs != null) {
                         this.setInput(
-                            this._input.substr(0, ofs) +
-                                this._input.substr(this._cursor),
+                            this._input.slice(0, ofs) +
+                                this._input.slice(this._cursor),
                         );
                         this.setCursor(ofs);
                     }
@@ -605,25 +605,26 @@ export default class LocalEchoController {
                             // Just a single candidate? Complete
                             const lastToken = getLastToken(inputFragment);
                             this.handleCursorInsert(
-                                candidates[0].substr(lastToken.length) + " ",
+                                candidates[0].slice(lastToken.length) + " ",
                             );
                         } else if (
                             candidates.length <= this.maxAutocompleteEntries
                         ) {
                             // search for a shared fragement
-                            const sameFragment = getSharedFragment(
-                                inputFragment,
-                                candidates,
-                            );
+                            // const sameFragment = getSharedFragment(
+                            //     inputFragment,
+                            //     candidates,
+                            // );
 
                             // if there's a shared fragement between the candidates
                             // print complete the shared fragment
-                            if (sameFragment) {
-                                const lastToken = getLastToken(inputFragment);
-                                this.handleCursorInsert(
-                                    sameFragment.substr(lastToken.length),
-                                );
-                            }
+                            // if (sameFragment) {
+                            //     console.log("ici")
+                            //     const lastToken = getLastToken(inputFragment);
+                            //     this.handleCursorInsert(
+                            //         sameFragment.slice(lastToken.length),
+                            //     );
+                            // }
 
                             // If we are less than maximum auto-complete candidates, print
                             // them to the user and re-start prompt
