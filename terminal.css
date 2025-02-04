@@ -24,7 +24,7 @@
     left: 0;
     bottom: 0;
     display: flex;
-    gap: 10px;
+    gap: 5px;
     transform: translateY(100%);
     transition: 0.3s transform;
 }
