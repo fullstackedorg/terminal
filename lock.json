@@ -1,4 +1,8 @@
 {
+    "@fullstacked/stack-navigation": {
+        "Version": "0.0.2",
+        "Dependencies": {}
+    },
     "@xterm/addon-fit": {
         "Version": "0.10.0",
         "Dependencies": {

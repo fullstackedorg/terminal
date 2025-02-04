@@ -1,0 +1,46 @@
+* {
+    box-sizing: border-box
+}
+
+.terminal {
+    height: 100%;
+}
+
+.keyboard-extension {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.keyboard-extension > div {
+    width: 100%;
+    pointer-events: all;
+    position: absolute;
+    padding: 5px;
+    background-color: lightgray;
+    left: 0;
+    bottom: 0;
+    display: flex;
+    gap: 10px;
+    transform: translateY(100%);
+    transition: 0.3s transform;
+}
+
+.keyboard-extension.show > div {
+    transform: translateY(0%);
+}
+
+.keyboard-extension > div > button {
+    padding: 10px 20px;
+    font-size: 14px;
+    border-radius: 5px;
+    border: 0;
+    border: 1px solid gray;
+}
+
+.keyboard-extension > div > button:active {
+    background-color: lightgray
+}

@@ -1,42 +1,12 @@
-* {
-    box-sizing: border-box
-}
-
-html,
-body {
-    margin: 0;
-    height: 100%;
-    width: 100%;
-    position: relative;
-    overflow: hidden;
-}
-
-
-#terminal-container {
-    height: 100%;
-    > div {
-        height: 100%;
-    }
-}
-
-#keyboard-extension {
-    position: absolute;
-    width: 100%;
-    padding: 5px;
-    background-color: lightgray;
-    left: 0;
-    bottom: 0;
+main {
     display: flex;
-    gap: 10px;
-}
+    flex-direction: column;
+    justify-content: flex-end;
+    height: 100%;
 
-button {
-    padding: 10px 20px;
-    font-size: 14px;
-    border-radius: 5px;
-    border: 0;
-    border: 1px solid gray;
-    &:active {
-        background-color: lightgray
+    .terminal-container {
+        height: 50%;
+        min-height: 400px;
     }
 }
+
