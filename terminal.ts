@@ -2,7 +2,7 @@ import "@xterm/xterm/css/xterm.css";
 import "./terminal.css";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
-import LocalEchoController from "./local-echo";
+import LocalEchoController, { AutocompleteHandler } from "./local-echo";
 
 export type CommandHandler = (
     command: string,
@@ -16,6 +16,7 @@ export type CommandHandler = (
 export function createTerminal(
     domElement: HTMLElement,
     onCommand: CommandHandler,
+    autocompletionHandler: AutocompleteHandler
 ) {
     const terminal = createXtermTerminal(domElement);
 
@@ -24,7 +25,11 @@ export function createTerminal(
         terminal.focus();
     });
 
-    return setupLocalEcho(terminal, onCommand);
+    return setupLocalEcho(
+        terminal, 
+        onCommand,
+        autocompletionHandler
+    );
 }
 
 function createXtermTerminal(domElement: HTMLElement) {
@@ -39,8 +44,14 @@ function createXtermTerminal(domElement: HTMLElement) {
     return terminal;
 }
 
-function setupLocalEcho(terminal: Terminal, onCommand: CommandHandler) {
+function setupLocalEcho(
+    terminal: Terminal, 
+    onCommand: CommandHandler,
+    autocompletionHandler: AutocompleteHandler,
+) {
     const localEcho = new LocalEchoController(terminal);
+
+    localEcho.addAutocompleteHandler(autocompletionHandler)
 
     const interact: Parameters<CommandHandler>[1] = {
         print: (str) => localEcho.print(str),
