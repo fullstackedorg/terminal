@@ -10,6 +10,7 @@ const fitAddon = new FitAddon();
 terminal.loadAddon(fitAddon);
 
 const fit = () => {
+    document.documentElement.style.height = window.visualViewport.height + "px";
     document.body.style.height = window.visualViewport.height + "px";
     const keyboardExtHeight = keyboardExtension.getBoundingClientRect().height;
     terminalContainer.style.height =
