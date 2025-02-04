@@ -21,7 +21,9 @@ function createXtermTerminal(domElement: HTMLElement) {
     terminal.loadAddon(fitAddon);
     terminal.open(domElement);
 
-    window.addEventListener("resize", () => fitAddon.fit());
+    window.addEventListener("resize", () => {
+        setTimeout(() => fitAddon.fit(), 100);
+    });
     fitAddon.fit();
 
     return terminal;
