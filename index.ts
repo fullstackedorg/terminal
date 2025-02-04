@@ -67,6 +67,7 @@ const checkHeight = () => {
 
     window.requestAnimationFrame(checkHeight);
 };
+checkHeight();
 
 const localEcho = new LocalEchoController(terminal);
 
