@@ -4,7 +4,19 @@ import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import LocalEchoController from "./local-echo";
 
-export function createTerminal(domElement: HTMLElement) {
+export type CommandHandler = (
+    command: string,
+    interact: {
+        print: (str: string) => void;
+        println: (str: string) => void;
+        clear: () => void;
+    },
+) => void | Promise<void>;
+
+export function createTerminal(
+    domElement: HTMLElement,
+    onCommand: CommandHandler,
+) {
     const terminal = createXtermTerminal(domElement);
 
     setupKeyboardExtension(domElement, terminal, (button) => {
@@ -12,7 +24,7 @@ export function createTerminal(domElement: HTMLElement) {
         terminal.focus();
     });
 
-    return setupLocalEcho(terminal, console.log);
+    return setupLocalEcho(terminal, onCommand);
 }
 
 function createXtermTerminal(domElement: HTMLElement) {
@@ -27,16 +39,19 @@ function createXtermTerminal(domElement: HTMLElement) {
     return terminal;
 }
 
-function setupLocalEcho(
-    terminal: Terminal,
-    onCommand: (cmd: string) => void | Promise<void>,
-) {
+function setupLocalEcho(terminal: Terminal, onCommand: CommandHandler) {
     const localEcho = new LocalEchoController(terminal);
 
+    const interact: Parameters<CommandHandler>[1] = {
+        print: (str) => localEcho.print(str),
+        println: (str) => localEcho.println(str),
+        clear: () => localEcho.clearInput()
+    }
+    
     const loop = async () => {
         try {
             const cmd = await localEcho.read("~$ ");
-            const maybePromise = onCommand(cmd);
+            const maybePromise = onCommand(cmd, interact);
             if (maybePromise instanceof Promise) await maybePromise;
         } catch (e) {
             console.log(e);
@@ -69,12 +84,11 @@ function setupKeyboardExtension(
 
     keyboardExtensionOverlayHeightListener(terminal, keyboardExtension);
     keyboardExtensionShowHideOnTerminalFocus(
-        container, 
-        terminal, 
+        container,
+        terminal,
         keyboardExtension,
-        toolbar
+        toolbar,
     );
-
 
     const tabButton = createButton("tab", "Tab", 9, onButtonClick);
     const leftButton = createButton("<", "ArrowLeft", 37, onButtonClick);
@@ -128,7 +142,7 @@ function keyboardExtensionShowHideOnTerminalFocus(
     container: HTMLElement,
     terminal: Terminal,
     keyboardExtElement: HTMLElement,
-    toolbar: HTMLElement
+    toolbar: HTMLElement,
 ) {
     let hideThrottler: ReturnType<typeof setTimeout>;
     const hideKeyboardExt = () => {
@@ -154,7 +168,8 @@ function keyboardExtensionShowHideOnTerminalFocus(
                 }
                 keyboardExtElement.classList.add("show");
                 container.style.transition = `0.3s margin-bottom`;
-                container.style.marginBottom = toolbar.getBoundingClientRect().height + "px";
+                container.style.marginBottom =
+                    toolbar.getBoundingClientRect().height + "px";
             } else {
                 hideKeyboardExt();
             }

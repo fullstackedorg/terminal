@@ -10,7 +10,6 @@ import {
     hasTailingWhitespace,
     isIncompleteInput,
     offsetToColRow,
-    getSharedFragment,
 } from "./Utils";
 
 /**
