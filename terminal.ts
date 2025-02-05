@@ -20,14 +20,28 @@ export function createTerminal(
         autocomplete: AutocompleteHandler;
     },
 ) {
-    const terminal = createXtermTerminal(domElement);
+    const { terminal, dispose } = createXtermTerminal(domElement);
 
-    setupKeyboardExtension(domElement, terminal, (button) => {
-        terminal.textarea.dispatchEvent(new KeyboardEvent("keydown", button));
-        terminal.focus();
-    });
+    const keyboardExt = setupKeyboardExtension(
+        domElement,
+        terminal,
+        (button) => {
+            terminal.textarea.dispatchEvent(
+                new KeyboardEvent("keydown", button),
+            );
+            terminal.focus();
+        },
+    );
 
-    setupLocalEcho(terminal, handlers);
+    const localEcho = setupLocalEcho(terminal, handlers);
+
+    return {
+        dispose: () => {
+            dispose();
+            keyboardExt.dispose();
+            localEcho.dispose();
+        },
+    };
 }
 
 function createXtermTerminal(domElement: HTMLElement) {
@@ -42,12 +56,21 @@ function createXtermTerminal(domElement: HTMLElement) {
         terminal.textarea.style.height = "40px";
     });
 
-    window.addEventListener("resize", () => fitAddon.fit());
-    checkForContainerSize(domElement, () => fitAddon.fit());
-    terminal.element.addEventListener("resize", () => fitAddon.fit());
-    fitAddon.fit();
-    
-    return terminal;
+    const fit = () => fitAddon.fit();
+
+    window.addEventListener("resize", fit);
+    const containerSizeListenner = checkForContainerSize(domElement, fit);
+    terminal.element.addEventListener("resize", fit);
+    fit();
+
+    return {
+        terminal,
+        dispose: () => {
+            containerSizeListenner.stop();
+            window.removeEventListener("resize", fit);
+            terminal.dispose();
+        },
+    };
 }
 
 function checkForContainerSize(
@@ -55,18 +78,21 @@ function checkForContainerSize(
     onSizeChange: () => void,
     intervalMs: number = 200,
 ) {
+    let stop = false;
+
     let lastCheck = 0,
         lastHeight = 0,
         lastWidth = 0;
     const checkSize = () => {
+        if (stop) return;
+
         const now = Date.now();
 
         if (now - lastCheck > intervalMs) {
-
             const { height, width } = domElement.getBoundingClientRect();
 
             if (lastHeight !== height || lastWidth !== width) {
-                console.log("RESIZE", height, width)
+                console.log("RESIZE", height, width);
                 onSizeChange();
             }
 
@@ -74,10 +100,14 @@ function checkForContainerSize(
             lastWidth = width;
             lastCheck = now;
         }
-        
-        requestAnimationFrame(checkSize)
+
+        window.requestAnimationFrame(checkSize);
     };
     checkSize();
+
+    return {
+        stop: () => (stop = true),
+    };
 }
 
 function setupLocalEcho(
@@ -110,6 +140,13 @@ function setupLocalEcho(
     };
 
     loop();
+
+    return {
+        dispose: () => {
+            localEcho.abortRead();
+            localEcho.dispose();
+        },
+    };
 }
 
 type ButtonClickParam = {
@@ -129,8 +166,11 @@ function setupKeyboardExtension(
 
     const toolbar = document.createElement("div");
 
-    keyboardExtensionOverlayHeightListener(terminal, keyboardExtension);
-    keyboardExtensionShowHideOnTerminalFocus(
+    const heightListener = keyboardExtensionOverlayHeightListener(
+        terminal,
+        keyboardExtension,
+    );
+    const showHideListener = keyboardExtensionShowHideOnTerminalFocus(
         container,
         terminal,
         keyboardExtension,
@@ -145,6 +185,14 @@ function setupKeyboardExtension(
     keyboardExtension.append(toolbar);
 
     document.body.append(keyboardExtension);
+
+    return {
+        dispose: () => {
+            heightListener.stop();
+            showHideListener.stop();
+            keyboardExtension.remove();
+        },
+    };
 }
 
 function createButton(
@@ -169,8 +217,12 @@ function keyboardExtensionOverlayHeightListener(
     terminal: Terminal,
     keyboardExtElement: HTMLElement,
 ) {
+    let stop = false;
+
     let lastHeight = 0;
     const checkHeight = () => {
+        if (stop) return;
+
         const currentHeight = window.visualViewport.height;
 
         if (currentHeight !== lastHeight) {
@@ -183,6 +235,10 @@ function keyboardExtensionOverlayHeightListener(
         window.requestAnimationFrame(checkHeight);
     };
     checkHeight();
+
+    return {
+        stop: () => (stop = true),
+    };
 }
 
 function keyboardExtensionShowHideOnTerminalFocus(
@@ -191,6 +247,8 @@ function keyboardExtensionShowHideOnTerminalFocus(
     keyboardExtElement: HTMLElement,
     toolbar: HTMLElement,
 ) {
+    let stop = false;
+
     let hideThrottler: ReturnType<typeof setTimeout>;
     const hideKeyboardExt = () => {
         if (hideThrottler) {
@@ -206,6 +264,8 @@ function keyboardExtensionShowHideOnTerminalFocus(
 
     let lastFocusedElement = null;
     const checkFocus = () => {
+        if (stop) return;
+
         const currentFocusedElement = document.activeElement;
 
         if (currentFocusedElement !== lastFocusedElement) {
@@ -227,4 +287,8 @@ function keyboardExtensionShowHideOnTerminalFocus(
         window.requestAnimationFrame(checkFocus);
     };
     checkFocus();
+
+    return {
+        stop: () => (stop = true),
+    };
 }
