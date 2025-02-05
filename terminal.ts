@@ -212,8 +212,7 @@ function keyboardExtensionShowHideOnTerminalFocus(
                     clearTimeout(hideThrottler);
                 }
                 keyboardExtElement.classList.add("show");
-                const existingTransition = container.style.transition || "";
-                container.style.transition = `${existingTransition} 0.3s margin-bottom`;
+                container.style.transition = `0.3s margin-bottom`;
                 container.style.marginBottom =
                     toolbar.getBoundingClientRect().height + "px";
             } else {
