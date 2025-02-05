@@ -165,6 +165,9 @@ function setupKeyboardExtension(
 
     const toolbar = document.createElement("div");
 
+    const heightListener = keyboardExtensionOverlayHeightListener(
+        keyboardExtension,
+    );
     const showHideListener = keyboardExtensionShowHideFocus(
         container,
         terminal,
@@ -183,6 +186,7 @@ function setupKeyboardExtension(
 
     return {
         dispose: () => {
+            heightListener.stop();
             showHideListener.stop();
             keyboardExtension.remove();
         },
@@ -205,6 +209,32 @@ function createButton(
             which: keyCode,
         });
     return button;
+}
+
+function keyboardExtensionOverlayHeightListener(
+    keyboardExtElement: HTMLElement,
+) {
+    let stop = false;
+
+    let lastHeight = 0;
+    const checkHeight = () => {
+        if (stop) return;
+
+        const currentHeight = window.visualViewport.height;
+
+        if (currentHeight !== lastHeight) {
+            keyboardExtElement.style.height = currentHeight + "px";
+        }
+
+        lastHeight = currentHeight;
+
+        window.requestAnimationFrame(checkHeight);
+    };
+    checkHeight();
+
+    return {
+        stop: () => (stop = true),
+    };
 }
 
 function keyboardExtensionShowHideFocus(
@@ -243,7 +273,6 @@ function keyboardExtensionShowHideFocus(
                     clearTimeout(hideThrottler);
                 }
 
-                keyboardExtElement.style.height = window.visualViewport.height + "px";
                 keyboardExtElement.classList.add("show");
                 container.style.transition = `0.3s margin-bottom`;
                 container.style.marginBottom =
