@@ -16,9 +16,9 @@ export type CommandHandler = (
 export function createTerminal(
     domElement: HTMLElement,
     handlers: {
-        command: CommandHandler,
-        autocomplete: AutocompleteHandler
-    }
+        command: CommandHandler;
+        autocomplete: AutocompleteHandler;
+    },
 ) {
     const terminal = createXtermTerminal(domElement);
 
@@ -42,18 +42,48 @@ function createXtermTerminal(domElement: HTMLElement) {
         terminal.textarea.style.height = "40px";
     });
 
+    window.addEventListener("resize", () => fitAddon.fit());
+    checkForContainerSize(domElement, () => fitAddon.fit());
     terminal.element.addEventListener("resize", () => fitAddon.fit());
     fitAddon.fit();
-
+    
     return terminal;
+}
+
+function checkForContainerSize(
+    domElement: HTMLElement,
+    onSizeChange: () => void,
+    intervalMs: number = 200,
+) {
+    let lastCheck = 0,
+        lastHeight = 0,
+        lastWidth = 0;
+    const checkSize = () => {
+        const now = Date.now();
+
+        if (now - lastCheck < intervalMs) {
+            return requestAnimationFrame(checkSize);
+        }
+
+        const { height, width } = domElement.getBoundingClientRect();
+
+        if (lastHeight !== height || lastWidth !== width) {
+            onSizeChange();
+        }
+
+        lastHeight = height;
+        lastWidth = width;
+        lastCheck = now;
+    };
+    checkSize();
 }
 
 function setupLocalEcho(
     terminal: Terminal,
     handlers: {
-        command: CommandHandler,
-        autocomplete: AutocompleteHandler
-    }
+        command: CommandHandler;
+        autocomplete: AutocompleteHandler;
+    },
 ) {
     const localEcho = new LocalEchoController(terminal);
 
@@ -182,7 +212,8 @@ function keyboardExtensionShowHideOnTerminalFocus(
                     clearTimeout(hideThrottler);
                 }
                 keyboardExtElement.classList.add("show");
-                container.style.transition = `0.3s margin-bottom`;
+                const existingTransition = container.style.transition || "";
+                container.style.transition = `${existingTransition} 0.3s margin-bottom`;
                 container.style.marginBottom =
                     toolbar.getBoundingClientRect().height + "px";
             } else {
