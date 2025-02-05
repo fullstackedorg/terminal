@@ -60,7 +60,6 @@ function createXtermTerminal(domElement: HTMLElement) {
 
     window.addEventListener("resize", fit);
     const containerSizeListenner = checkForContainerSize(domElement, fit);
-    terminal.element.addEventListener("resize", fit);
     fit();
 
     return {
@@ -166,11 +165,7 @@ function setupKeyboardExtension(
 
     const toolbar = document.createElement("div");
 
-    const heightListener = keyboardExtensionOverlayHeightListener(
-        terminal,
-        keyboardExtension,
-    );
-    const showHideListener = keyboardExtensionShowHideOnTerminalFocus(
+    const showHideListener = keyboardExtensionShowHideFocus(
         container,
         terminal,
         keyboardExtension,
@@ -188,7 +183,6 @@ function setupKeyboardExtension(
 
     return {
         dispose: () => {
-            heightListener.stop();
             showHideListener.stop();
             keyboardExtension.remove();
         },
@@ -213,35 +207,7 @@ function createButton(
     return button;
 }
 
-function keyboardExtensionOverlayHeightListener(
-    terminal: Terminal,
-    keyboardExtElement: HTMLElement,
-) {
-    let stop = false;
-
-    let lastHeight = 0;
-    const checkHeight = () => {
-        if (stop) return;
-
-        const currentHeight = window.visualViewport.height;
-
-        if (currentHeight !== lastHeight) {
-            terminal.element.dispatchEvent(new Event("resize"));
-            keyboardExtElement.style.height = currentHeight + "px";
-        }
-
-        lastHeight = currentHeight;
-
-        window.requestAnimationFrame(checkHeight);
-    };
-    checkHeight();
-
-    return {
-        stop: () => (stop = true),
-    };
-}
-
-function keyboardExtensionShowHideOnTerminalFocus(
+function keyboardExtensionShowHideFocus(
     container: HTMLElement,
     terminal: Terminal,
     keyboardExtElement: HTMLElement,
@@ -269,10 +235,15 @@ function keyboardExtensionShowHideOnTerminalFocus(
         const currentFocusedElement = document.activeElement;
 
         if (currentFocusedElement !== lastFocusedElement) {
-            if (currentFocusedElement === terminal.textarea) {
+            if (
+                currentFocusedElement === terminal.textarea &&
+                window.visualViewport.height !== document.body.clientHeight
+            ) {
                 if (hideThrottler) {
                     clearTimeout(hideThrottler);
                 }
+
+                keyboardExtElement.style.height = window.visualViewport.height + "px";
                 keyboardExtElement.classList.add("show");
                 container.style.transition = `0.3s margin-bottom`;
                 container.style.marginBottom =

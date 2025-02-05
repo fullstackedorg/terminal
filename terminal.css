@@ -37,10 +37,12 @@
     gap: 5px;
     transform: translateY(100%);
     transition: 0.3s transform;
+    opacity: 0;
 }
 
 .keyboard-extension.show > div {
     transform: translateY(0%);
+    opacity: 1;
 }
 
 .keyboard-extension > div > button {
