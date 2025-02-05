@@ -61,19 +61,21 @@ function checkForContainerSize(
     const checkSize = () => {
         const now = Date.now();
 
-        if (now - lastCheck < intervalMs) {
-            return requestAnimationFrame(checkSize);
+        if (now - lastCheck > intervalMs) {
+
+            const { height, width } = domElement.getBoundingClientRect();
+
+            if (lastHeight !== height || lastWidth !== width) {
+                console.log("RESIZE", height, width)
+                onSizeChange();
+            }
+
+            lastHeight = height;
+            lastWidth = width;
+            lastCheck = now;
         }
-
-        const { height, width } = domElement.getBoundingClientRect();
-
-        if (lastHeight !== height || lastWidth !== width) {
-            onSizeChange();
-        }
-
-        lastHeight = height;
-        lastWidth = width;
-        lastCheck = now;
+        
+        requestAnimationFrame(checkSize)
     };
     checkSize();
 }
