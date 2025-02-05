@@ -4,6 +4,7 @@ import { AutocompleteHandler } from "./local-echo";
 export type CommandExec = (
     args: string[],
     it: Parameters<CommandHandler>[1],
+    ctx?: any
 ) => Promise<void> | void;
 
 export type Command = {
@@ -53,7 +54,7 @@ function recurseInSubCommands(cmds: Command[], args: string[]) {
     return recurseInSubCommands(cmd.subcommands, args);
 }
 
-function createHandlers(commands: Command[]) {
+function createHandlers(commands: Command[], ctx: any) {
     const autocomplete: AutocompleteHandler = (index, tokens) => {
         tokens = new Array(index + 1).fill(null).map((_, i) => tokens[i] || "");
         const cmds = recurseInSubCommands(commands, tokens.slice(0, -1));
@@ -82,15 +83,19 @@ function createHandlers(commands: Command[]) {
 
         const { cmd, depth } = recurseInCommand(command, args.slice(1), 1);
 
-        return cmd.exec(args.slice(depth + 1), it);
+        return cmd.exec(args.slice(depth + 1), it, ctx);
     };
 
     return {
         autocomplete,
-        command
+        command,
     };
 }
 
-export default function (container: HTMLElement, commands: Command[]) {
-    return createTerminal(container, createHandlers(commands));
+export default function (
+    container: HTMLElement,
+    commands: Command[],
+    ctx: any,
+) {
+    return createTerminal(container, createHandlers(commands, ctx));
 }

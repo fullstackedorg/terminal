@@ -10,6 +10,10 @@ export const commands: Command[] = [
         }
     },
     {
+        name: "ctx",
+        exec: (_, it, ctx) => it.println(JSON.stringify(ctx, null, 2))
+    },
+    {
         name: "hello",
         alias: ["h"],
         exec: (_, it) => {
