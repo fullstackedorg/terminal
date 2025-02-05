@@ -91,7 +91,6 @@ function checkForContainerSize(
             const { height, width } = domElement.getBoundingClientRect();
 
             if (lastHeight !== height || lastWidth !== width) {
-                console.log("RESIZE", height, width);
                 onSizeChange();
             }
 
