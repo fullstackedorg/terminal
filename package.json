@@ -5,5 +5,10 @@
     "repository": {
         "type": "git",
         "url": "https://github.com/fullstackedorg/terminal.git"
+    },
+    "dependencies": {
+        "@xterm/addon-fit": "^0.10.0",
+        "@xterm/xterm": "^5.5.0",
+        "shell-quote": "^1.8.2"
     }
 }
