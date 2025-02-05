@@ -244,6 +244,7 @@ function keyboardExtensionShowHideFocus(
 ) {
     let stop = false;
 
+    
     let hideThrottler: ReturnType<typeof setTimeout>;
     const hideKeyboardExt = () => {
         if (hideThrottler) {
@@ -257,14 +258,17 @@ function keyboardExtensionShowHideFocus(
         }, 100);
     };
 
+    let show = false;
     const checkFocus = () => {
         if (stop) return;
 
         if (
             document.activeElement === terminal.textarea && // terminal focus
             window.visualViewport.height !== document.body.clientHeight && // probably soft keyboard
-            !keyboardExtElement.classList.contains("show") // keyboard ext not showed yet
+            !show // keyboard ext not showed yet
         ) {
+            show = true;
+            
             if (hideThrottler) {
                 clearTimeout(hideThrottler);
             }
@@ -275,8 +279,9 @@ function keyboardExtensionShowHideFocus(
                 toolbar.getBoundingClientRect().height + "px";
         } else if(
             document.activeElement !== terminal.textarea && // terminal blurred
-            keyboardExtElement.classList.contains("show") // keyboard ext still shown
+            show // keyboard ext still shown
         ) {
+            show = false;
             hideKeyboardExt()
         }
 
