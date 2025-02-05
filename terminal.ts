@@ -165,9 +165,8 @@ function setupKeyboardExtension(
 
     const toolbar = document.createElement("div");
 
-    const heightListener = keyboardExtensionOverlayHeightListener(
-        keyboardExtension,
-    );
+    const heightListener =
+        keyboardExtensionOverlayHeightListener(keyboardExtension);
     const showHideListener = keyboardExtensionShowHideFocus(
         container,
         terminal,
@@ -258,31 +257,28 @@ function keyboardExtensionShowHideFocus(
         }, 100);
     };
 
-    let lastFocusedElement = null;
     const checkFocus = () => {
         if (stop) return;
 
-        const currentFocusedElement = document.activeElement;
-
-        if (currentFocusedElement !== lastFocusedElement) {
-            if (
-                currentFocusedElement === terminal.textarea &&
-                window.visualViewport.height !== document.body.clientHeight
-            ) {
-                if (hideThrottler) {
-                    clearTimeout(hideThrottler);
-                }
-
-                keyboardExtElement.classList.add("show");
-                container.style.transition = `0.3s margin-bottom`;
-                container.style.marginBottom =
-                    toolbar.getBoundingClientRect().height + "px";
-            } else {
-                hideKeyboardExt();
+        if (
+            document.activeElement === terminal.textarea && // terminal focus
+            window.visualViewport.height !== document.body.clientHeight && // probably soft keyboard
+            !keyboardExtElement.classList.contains("show") // keyboard ext not showed yet
+        ) {
+            if (hideThrottler) {
+                clearTimeout(hideThrottler);
             }
-        }
 
-        lastFocusedElement = currentFocusedElement;
+            keyboardExtElement.classList.add("show");
+            container.style.transition = `0.3s margin-bottom`;
+            container.style.marginBottom =
+                toolbar.getBoundingClientRect().height + "px";
+        } else if(
+            document.activeElement !== terminal.textarea && // terminal blurred
+            keyboardExtElement.classList.contains("show") // keyboard ext still shown
+        ) {
+            hideKeyboardExt()
+        }
 
         window.requestAnimationFrame(checkFocus);
     };
