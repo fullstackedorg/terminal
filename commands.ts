@@ -1,17 +1,26 @@
 import { Command } from ".";
-import { color } from 'console-log-colors';
+import { color } from "console-log-colors";
 
 export const commands: Command[] = [
     {
         name: "error",
         alias: ["e"],
         exec: (args, it) => {
-            it.println(color.red(args.join(" ")))
-        }
+            it.println(color.red(args.join(" ")));
+        },
     },
     {
         name: "ctx",
-        exec: (_, it, ctx) => it.println(JSON.stringify(ctx, null, 2))
+        exec: (_, it, ctx) => it.println(JSON.stringify(ctx, null, 2)),
+    },
+    {
+        name: "multi",
+        exec: async (_, it) => {
+            it.print(`line 1\nline 2\n`);
+            await new Promise((res) => setTimeout(res, 500));
+            it.clear();
+            it.println("line 3");
+        },
     },
     {
         name: "hello",
@@ -65,17 +74,21 @@ export const commands: Command[] = [
     },
     {
         name: "npm",
-        exec: (_, it) => {it.println("npm")},
-        subcommands: [{
-            name: "install",
-            alias: ["i"],
-            exec: (args, it) => { 
-                if(args.length === 0) {
-                    it.println("no package to install")
-                    return;
-                }
-                it.println(`installing ${args.join(", ")}`)
-            }
-        }]
-    }
+        exec: (_, it) => {
+            it.println("npm");
+        },
+        subcommands: [
+            {
+                name: "install",
+                alias: ["i"],
+                exec: (args, it) => {
+                    if (args.length === 0) {
+                        it.println("no package to install");
+                        return;
+                    }
+                    it.println(`installing ${args.join(", ")}`);
+                },
+            },
+        ],
+    },
 ];

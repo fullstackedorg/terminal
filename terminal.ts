@@ -122,7 +122,7 @@ function setupLocalEcho(
     const interact: Parameters<CommandHandler>[1] = {
         print: (str) => localEcho.print(str),
         println: (str) => localEcho.println(str),
-        clear: () => localEcho.clearInput(),
+        clear: () => localEcho.clear(),
     };
 
     const loop = async () => {

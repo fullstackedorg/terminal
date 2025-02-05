@@ -55,6 +55,7 @@ export default class LocalEchoController {
         rows: 0,
     };
     private _disposables: IDisposable[] = [];
+    private _message: string = "";
 
     term: Terminal;
     history: HistoryController;
@@ -144,6 +145,7 @@ export default class LocalEchoController {
             this._input = "";
             this._cursor = 0;
             this._active = true;
+            this._message = "";
         });
     }
 
@@ -195,7 +197,18 @@ export default class LocalEchoController {
      */
     print(message: string) {
         const normInput = message.replace(/[\r\n]+/g, "\n");
-        this.term.write(normInput.replace(/\n/g, "\r\n"));
+        const data = normInput.replace(/\n/g, "\r\n");
+        this.term.write(data);
+        if(!this._active) {
+            this._message += data
+        }
+    }
+
+    clear() {
+        const rows = countLines(this._message, this._termSize.cols)
+        this.term.write("\r\x1B[K");
+        for (var i = 1; i < rows; ++i) this.term.write("\x1B[F\x1B[K");
+        this._message = "";
     }
 
     /**
