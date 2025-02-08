@@ -131,7 +131,7 @@ function setupLocalEcho(
             const maybePromise = handlers.command(cmd, interact);
             if (maybePromise instanceof Promise) await maybePromise;
         } catch (e) {
-            console.log(e);
+            if (e !== "aborted") console.log(e);
         }
 
         loop();
@@ -243,7 +243,6 @@ function keyboardExtensionShowHideFocus(
 ) {
     let stop = false;
 
-    
     let hideThrottler: ReturnType<typeof setTimeout>;
     const hideKeyboardExt = () => {
         if (hideThrottler) {
@@ -267,7 +266,7 @@ function keyboardExtensionShowHideFocus(
             !show // keyboard ext not showed yet
         ) {
             show = true;
-            
+
             if (hideThrottler) {
                 clearTimeout(hideThrottler);
             }
@@ -276,12 +275,12 @@ function keyboardExtensionShowHideFocus(
             container.style.transition = `0.3s margin-bottom`;
             container.style.marginBottom =
                 toolbar.getBoundingClientRect().height + "px";
-        } else if(
+        } else if (
             document.activeElement !== terminal.textarea && // terminal blurred
             show // keyboard ext still shown
         ) {
             show = false;
-            hideKeyboardExt()
+            hideKeyboardExt();
         }
 
         window.requestAnimationFrame(checkFocus);
