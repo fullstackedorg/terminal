@@ -95,7 +95,12 @@ function createHandlers(commands: Command[], ctx: any) {
 export default function (
     container: HTMLElement,
     commands: Command[],
+    placeholder?: string,
     ctx?: any,
 ) {
-    return createTerminal(container, createHandlers(commands, ctx));
+    return createTerminal(
+        container, 
+        createHandlers(commands, ctx),
+        placeholder
+    );
 }

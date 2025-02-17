@@ -1,0 +1,61 @@
+.terminal {
+    height: 100%;
+    box-sizing: border-box;
+    * {
+        box-sizing: border-box;
+    }
+}
+
+.xterm {
+    .xterm-helper-textarea {
+        opacity: 1;
+        outline: 0;
+        background-color: transparent;
+        border: transparent;
+        color: transparent;
+        caret-color: transparent;
+    }
+}
+
+.keyboard-extension {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.keyboard-extension {
+    > div {
+        width: 100%;
+        pointer-events: all;
+        position: absolute;
+        padding: 5px;
+        background-color: lightgray;
+        left: 0;
+        bottom: 0;
+        display: flex;
+        gap: 5px;
+        transform: translateY(100%);
+        transition: 0.3s transform;
+        opacity: 0;
+
+        > button {
+            padding: 10px 20px;
+            font-size: 14px;
+            border-radius: 5px;
+            border: 0;
+            border: 1px solid gray;
+            &:active {
+                background-color: lightgray;
+            }
+        }
+    }
+
+    &.show {
+        transform: translateY(0%);
+        opacity: 1;
+    }
+}

@@ -15,4 +15,4 @@ const terminalContainer = document.createElement("div");
 terminalContainer.classList.add("terminal-container");
 view.append(terminalContainer);
 
-terminal(terminalContainer, commands, {some: "ctx"});
+terminal(terminalContainer, commands, "Hello from FullStacked Terminal", {some: "ctx"});

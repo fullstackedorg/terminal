@@ -1,5 +1,4 @@
 import "@xterm/xterm/css/xterm.css";
-import "./terminal.css";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import LocalEchoController, { AutocompleteHandler } from "./local-echo";
@@ -19,6 +18,7 @@ export function createTerminal(
         command: CommandHandler;
         autocomplete: AutocompleteHandler;
     },
+    placeholder?: string
 ) {
     const { terminal, dispose } = createXtermTerminal(domElement);
 
@@ -33,7 +33,7 @@ export function createTerminal(
         },
     );
 
-    const localEcho = setupLocalEcho(terminal, handlers);
+    const localEcho = setupLocalEcho(terminal, handlers, placeholder);
 
     return {
         dispose: () => {
@@ -108,12 +108,15 @@ function checkForContainerSize(
     };
 }
 
+const lineRead = "~$ ";
+
 function setupLocalEcho(
     terminal: Terminal,
     handlers: {
         command: CommandHandler;
         autocomplete: AutocompleteHandler;
     },
+    placeholder?: string
 ) {
     const localEcho = new LocalEchoController(terminal);
 
@@ -127,7 +130,7 @@ function setupLocalEcho(
 
     const loop = async () => {
         try {
-            const cmd = await localEcho.read("~$ ");
+            const cmd = await localEcho.read(lineRead);
             const maybePromise = handlers.command(cmd, interact);
             if (maybePromise instanceof Promise) await maybePromise;
         } catch (e) {
@@ -137,7 +140,15 @@ function setupLocalEcho(
         loop();
     };
 
-    loop();
+    if(placeholder) {
+        localEcho.println(placeholder + "\n" + lineRead);
+        terminal.textarea.addEventListener("focus", () => {
+            localEcho.clear();
+            loop();
+        })
+    } else {
+        loop();
+    }
 
     return {
         dispose: () => {
