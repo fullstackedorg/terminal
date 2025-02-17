@@ -1,36 +1,64 @@
 {
-    "@fullstacked/stack-navigation": {
-        "Version": "0.0.3",
-        "Dependencies": {}
-    },
-    "@xterm/addon-fit": {
-        "Version": "0.10.0",
-        "Dependencies": {
-            "@xterm/xterm": {
-                "Version": "5.5.0",
-                "Dependencies": {}
-            }
+    "packages": [
+        {
+            "name": "@fullstacked/stack-navigation",
+            "version": "0.0.3",
+            "as": [
+                "^0.0.3"
+            ],
+            "location": [
+                "node_modules"
+            ]
+        },
+        {
+            "name": "@xterm/addon-fit",
+            "version": "0.10.0",
+            "as": [
+                "^0.10.0"
+            ],
+            "location": [
+                "node_modules"
+            ]
+        },
+        {
+            "name": "@xterm/xterm",
+            "version": "5.5.0",
+            "as": [
+                "^5.5.0"
+            ],
+            "location": [
+                "node_modules"
+            ]
+        },
+        {
+            "name": "console-log-colors",
+            "version": "0.5.0",
+            "as": [
+                "^0.5.0"
+            ],
+            "location": [
+                "node_modules"
+            ]
+        },
+        {
+            "name": "eruda",
+            "version": "3.4.1",
+            "as": [
+                "^3.4.1"
+            ],
+            "location": [
+                "node_modules"
+            ]
+        },
+        {
+            "name": "shell-quote",
+            "version": "1.8.2",
+            "as": [
+                "^1.8.2"
+            ],
+            "location": [
+                "node_modules"
+            ]
         }
-    },
-    "@xterm/xterm": {
-        "Version": "5.5.0",
-        "Dependencies": {}
-    },
-    "console-log-colors": {
-        "Version": "0.5.0",
-        "Dependencies": {}
-    },
-    "eruda": {
-        "Version": "3.4.1",
-        "Dependencies": {}
-    },
-    "shell-quote": {
-        "Version": "1.8.2",
-        "Dependencies": {
-            "@types/shell-quote": {
-                "Version": "1.7.5",
-                "Dependencies": {}
-            }
-        }
-    }
+    ]
 }

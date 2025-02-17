@@ -10,5 +10,10 @@
         "@xterm/addon-fit": "^0.10.0",
         "@xterm/xterm": "^5.5.0",
         "shell-quote": "^1.8.2"
+    },
+    "devDependencies": {
+        "@fullstacked/stack-navigation": "^0.0.3",
+        "console-log-colors": "^0.5.0",
+        "eruda": "^3.4.1"
     }
 }
