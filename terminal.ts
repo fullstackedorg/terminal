@@ -18,7 +18,6 @@ export function createTerminal(
         command: CommandHandler;
         autocomplete: AutocompleteHandler;
     },
-    placeholder?: string
 ) {
     const { terminal, dispose } = createXtermTerminal(domElement);
 
@@ -33,7 +32,7 @@ export function createTerminal(
         },
     );
 
-    const localEcho = setupLocalEcho(terminal, handlers, placeholder);
+    const localEcho = setupLocalEcho(terminal, handlers);
 
     return {
         dispose: () => {
@@ -116,7 +115,6 @@ function setupLocalEcho(
         command: CommandHandler;
         autocomplete: AutocompleteHandler;
     },
-    placeholder?: string
 ) {
     const localEcho = new LocalEchoController(terminal);
 
@@ -139,16 +137,7 @@ function setupLocalEcho(
 
         loop();
     };
-
-    if(placeholder) {
-        localEcho.println(placeholder + "\n" + lineRead);
-        terminal.textarea.addEventListener("focus", () => {
-            localEcho.clear();
-            loop();
-        })
-    } else {
-        loop();
-    }
+    loop();
 
     return {
         dispose: () => {
