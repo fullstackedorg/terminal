@@ -1,11 +1,5 @@
 {
-    "name": "@fullstacked/terminal",
-    "version": "0.0.15",
     "author": "cplepage",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/fullstackedorg/terminal.git"
-    },
     "dependencies": {
         "@xterm/addon-fit": "^0.10.0",
         "@xterm/xterm": "^5.5.0",
@@ -15,5 +9,11 @@
         "@fullstacked/stack-navigation": "^0.0.3",
         "console-log-colors": "^0.5.0",
         "eruda": "^3.4.1"
-    }
+    },
+    "name": "@fullstacked/terminal",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/fullstackedorg/terminal.git"
+    },
+    "version": "0.0.15"
 }
